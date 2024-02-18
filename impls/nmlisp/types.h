@@ -12,6 +12,8 @@ typedef struct node {
     union {
         int int_value;
         char *string_value;
+        struct node *(*func_value)(struct node *);
+        struct node *node_value;
     } value;
 } node;
 
@@ -32,8 +34,9 @@ void freenode(node *n);
 #define NODE_DEREF 11
 #define NODE_META 12
 #define NODE_KEY 13
+#define NODE_FUNC 14
 
 static char *node_types[] = {"nil", "list", "symbol", "int", "string", "vector", "hashmap",
-    "quote", "quasiquote", "unquote", "splice-unquote", "deref", "with-meta", "keyword"};
+    "quote", "quasiquote", "unquote", "splice-unquote", "deref", "with-meta", "keyword", "function"};
 
 #endif

@@ -181,10 +181,10 @@ node *read_atom(Reader *r)
 {
     char *t = reader_next(r);
     int i = 0;
-    char c = t[0];
+    char c = t[0], c2 = t[1];
     node *n = NULL;
 
-    if(c >= '0' && c <= '9') {
+    if((c == '-' && c2 >= '0' && c2 <= '9' )|| (c >= '0' && c <= '9')) {
         i = atoi(t);
         n = newnode(NODE_INT, NULL, NULL);
         n -> value.int_value = i;
