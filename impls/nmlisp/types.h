@@ -31,8 +31,9 @@ void freenode(node *n);
 #define NODE_SUQUOTE 10
 #define NODE_DEREF 11
 #define NODE_META 12
+#define NODE_KEY 13
 
 static char *node_types[] = {"nil", "list", "symbol", "int", "string", "vector", "hashmap",
-    "quote", "quasiquote", "unquote", "splice-unquote", "deref", "with-meta"};
+    "quote", "quasiquote", "unquote", "splice-unquote", "deref", "with-meta", "keyword"};
 
 #endif

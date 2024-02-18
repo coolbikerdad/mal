@@ -136,6 +136,10 @@ void sprintnode(Writer *w, node *tree, int readably)
         case NODE_SYMBOL:
             writer_puts(w, tree -> value.string_value);
             break;
+         case NODE_KEY:
+            writer_putc(w, ':');
+            writer_puts(w, tree -> value.string_value);
+            break;
         case NODE_NIL:
             writer_puts(w,"nil");
             break;

@@ -93,19 +93,23 @@ char **tokenise(char *str)
             if(end - start > MAX_TOKEN_SIZE) {
                 printf("overlong token found");
             }
-            strncpy(token_buffer,&str[start],end-start);
-            token_buffer[end-start] = '\0';
-            /* printf("Token: [%s]\n", token_buffer); */
-            /* Store token in return list */
+            if(str[start] != ';') {
+                /* Ignore comments*/
 
-            if(token_count == token_capacity - 1) {
-                token_capacity += TOKEN_INCREMENT;
-                /* printf("realloc token capacity to %d\n", token_capacity); */
-                tokens = (char **)GC_REALLOC(tokens, token_capacity*sizeof(char *));
+                strncpy(token_buffer,&str[start],end-start);
+                token_buffer[end-start] = '\0';
+                /* printf("Token: [%s]\n", token_buffer); */
+                /* Store token in return list */
+
+                if(token_count == token_capacity - 1) {
+                    token_capacity += TOKEN_INCREMENT;
+                    /* printf("realloc token capacity to %d\n", token_capacity); */
+                    tokens = (char **)GC_REALLOC(tokens, token_capacity*sizeof(char *));
+                }
+                tokens[token_count] = (char *)GC_MALLOC(strlen(token_buffer));
+                strcpy(tokens[token_count],token_buffer);
+                token_count++;
             }
-            tokens[token_count] = (char *)GC_MALLOC(strlen(token_buffer));
-            strcpy(tokens[token_count],token_buffer);
-            token_count++;
         }
         subject_offset = ovector[1];
     }
@@ -198,6 +202,16 @@ node *read_atom(Reader *r)
         t = inplace_dequote_string(t);
         if(!t)
             return NULL;
+        n -> value.string_value = &t[1];
+        return n;
+    }
+    if(c == ':') {
+        int l = strlen(t);
+        if(l == 1) {
+            printf("missing key\n");
+            return NULL;
+        }
+        n = newnode(NODE_KEY, NULL, NULL);
         n -> value.string_value = &t[1];
         return n;
     }
