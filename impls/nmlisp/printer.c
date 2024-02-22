@@ -191,6 +191,7 @@ void sprintnode(Writer *w, node *tree, int readably)
         case NODE_SUQUOTE:
         case NODE_DEREF:
         case NODE_META:
+        /*
             writer_putc(w, '(');
             writer_puts(w, node_types[tree -> type]);
             writer_putc(w, ' ');
@@ -200,6 +201,11 @@ void sprintnode(Writer *w, node *tree, int readably)
                 sprintnode(w, t -> right, readably);               
             }
             writer_putc(w,')');
+            break;
+        */
+        case NODE_DEFBANG:
+        case NODE_LETSTAR:
+            writer_puts(w,special_forms[tree -> type - NODE_SPECIAL_START]);
             break;
     }
 }

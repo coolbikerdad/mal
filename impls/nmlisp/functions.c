@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "types.h"
+#include "env.h"
 
 /*
 Functions
@@ -158,4 +159,16 @@ node *repl_env() {
     return env;
 }
 
+void env_add_func(Env *env, char *name, node *(*func)(node *))
+{
+    env_set(env, newsymbol(name), newfunc(func));
+}
 
+Env *new_repl_env() {
+    Env *env = newenv(NULL);
+    env_add_func(env, "+", integer_add);
+    env_add_func(env, "-", integer_sub);
+    env_add_func(env, "*", integer_mul);
+    env_add_func(env, "/", integer_div);
+    return env;
+}

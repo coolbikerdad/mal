@@ -5,6 +5,8 @@ Types
 #ifndef __TYPES__H__
 #define __TYPES__H__
 
+#include <stdlib.h>
+
 typedef struct node {
     int type;
     struct node *left;
@@ -20,6 +22,7 @@ typedef struct node {
 node *newnode(int type, node *left, node *right);
 void freenode(node *n);
 
+/* Node types */
 #define NODE_NIL 0
 #define NODE_LIST 1
 #define NODE_SYMBOL 2
@@ -27,16 +30,21 @@ void freenode(node *n);
 #define NODE_STRING 4
 #define NODE_VEC 5
 #define NODE_HASH 6
-#define NODE_QUOTE 7
-#define NODE_QQUOTE 8
-#define NODE_UQUOTE 9
-#define NODE_SUQUOTE 10
-#define NODE_DEREF 11
-#define NODE_META 12
-#define NODE_KEY 13
-#define NODE_FUNC 14
+#define NODE_KEY 7
+#define NODE_FUNC 8
 
-static char *node_types[] = {"nil", "list", "symbol", "int", "string", "vector", "hashmap",
-    "quote", "quasiquote", "unquote", "splice-unquote", "deref", "with-meta", "keyword", "function"};
+/* Special Forms */
+#define NODE_SPECIAL_START 100
+#define NODE_QUOTE 100
+#define NODE_QQUOTE 101
+#define NODE_UQUOTE 102
+#define NODE_SUQUOTE 103
+#define NODE_DEREF 104
+#define NODE_META 105
+#define NODE_LETSTAR 106
+#define NODE_DEFBANG 107
+
+static char *node_types[] = {"nil", "list", "symbol", "int", "string", "vector", "hashmap", "keyword", "function", NULL};
+static char *special_forms[] = {"quote", "quasiquote", "unquote", "splice-unquote", "deref", "with-meta", "let*", "def!", NULL};
 
 #endif

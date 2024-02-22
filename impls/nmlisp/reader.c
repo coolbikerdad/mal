@@ -17,6 +17,20 @@
 #define MAX_TOKEN_SIZE 1024
 #define TOKEN_INCREMENT 1
 
+/* Is a token a special form? */
+int findspecial(char *s)
+{
+    char **t = special_forms;
+    int n = 0;
+    while(*t) {
+        if(strcmp(s, *t) == 0)
+            return n + NODE_SPECIAL_START;
+        t++;
+        n++;
+    }
+    return 0;
+}
+
 /* Break a string into tokens according to regular expression above */
 char **tokenise(char *str)
 {
@@ -183,6 +197,7 @@ node *read_atom(Reader *r)
     int i = 0;
     char c = t[0], c2 = t[1];
     node *n = NULL;
+    int sf = 0;
 
     if((c == '-' && c2 >= '0' && c2 <= '9' )|| (c >= '0' && c <= '9')) {
         i = atoi(t);
@@ -213,6 +228,11 @@ node *read_atom(Reader *r)
         }
         n = newnode(NODE_KEY, NULL, NULL);
         n -> value.string_value = &t[1];
+        return n;
+    }
+    /* Detect special forms */
+    if((sf = findspecial(t))) {
+        n = newnode(sf,NULL,NULL);
         return n;
     }
     else {
@@ -384,33 +404,33 @@ node *read_form(Reader *r)
     if(t[0] == '\'') {
         t = reader_next(r);
         n = read_form(r);
-        return newnode(NODE_QUOTE,n,NULL);
+        return newnode(NODE_LIST,newnode(NODE_QUOTE,NULL,NULL),newnode(NODE_LIST,n,NULL));
     }
     if(t[0] == '`') {
         t = reader_next(r);
         n = read_form(r);
-        return newnode(NODE_QQUOTE,n,NULL);
+        return newnode(NODE_LIST,newnode(NODE_QQUOTE,NULL,NULL),newnode(NODE_LIST,n,NULL));
     }
     if(t[0] == '~' && t[1] == '@') {
         t = reader_next(r);
         n = read_form(r);
-        return newnode(NODE_SUQUOTE,n,NULL);
+        return newnode(NODE_LIST,newnode(NODE_SUQUOTE,NULL,NULL),newnode(NODE_LIST,n,NULL));
     }
     if(t[0] == '~') {
         t = reader_next(r);
         n = read_form(r);
-        return newnode(NODE_UQUOTE,n,NULL);
+        return newnode(NODE_LIST,newnode(NODE_UQUOTE,NULL,NULL),newnode(NODE_LIST,n,NULL));
     }   
     if(t[0] == '@') {
         t = reader_next(r);
         n = read_form(r);
-        return newnode(NODE_DEREF,n,NULL);
+        return newnode(NODE_LIST,newnode(NODE_DEREF,NULL,NULL),newnode(NODE_LIST,n,NULL));
     }   
     if(t[0] == '^') {
         t = reader_next(r);
         n = read_form(r);
         n2 = read_form(r);
-        return newnode(NODE_META,n2,n);
+        return newnode(NODE_LIST,newnode(NODE_META,NULL,NULL),newnode(NODE_LIST,n2,newnode(NODE_LIST,n,NULL)));
     }   
 
     return read_atom(r);
