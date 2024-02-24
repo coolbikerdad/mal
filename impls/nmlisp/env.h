@@ -4,12 +4,7 @@
 #ifndef __ENV_H__
 #define __ENV_H__
 
-typedef struct Env {
-    struct Env *outer;
-    node *hashmap;
-} Env;
-
-Env *newenv(Env *outer);
+Env *newenv(Env *outer, node *binds, node *exprs);
 void env_set(Env *env, node *sym, node *val);
 Env *env_find(Env *env, node *sym);
 node *env_get(Env *env, node *sym);

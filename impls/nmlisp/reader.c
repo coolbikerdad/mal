@@ -230,7 +230,16 @@ node *read_atom(Reader *r)
         n -> value.string_value = &t[1];
         return n;
     }
-    /* Detect special forms */
+
+    /* Special nodes */
+    if(strcmp(t,"nil") == 0)
+        return newnode(NODE_NIL, NULL, NULL);
+    if(strcmp(t,"true") == 0)
+        return newnode(NODE_TRUE, NULL, NULL);
+    if(strcmp(t,"false") == 0)
+        return newnode(NODE_FALSE, NULL, NULL);
+
+   /* Detect special forms */
     if((sf = findspecial(t))) {
         n = newnode(sf,NULL,NULL);
         return n;

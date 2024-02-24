@@ -7,6 +7,8 @@ Types
 
 #include <stdlib.h>
 
+struct Env;
+
 typedef struct node {
     int type;
     struct node *left;
@@ -16,8 +18,14 @@ typedef struct node {
         char *string_value;
         struct node *(*func_value)(struct node *);
         struct node *node_value;
+        struct Env *node_env;
     } value;
 } node;
+
+typedef struct Env {
+    struct Env *outer;
+    node *hashmap;
+} Env;
 
 node *newnode(int type, node *left, node *right);
 void freenode(node *n);
@@ -32,6 +40,9 @@ void freenode(node *n);
 #define NODE_HASH 6
 #define NODE_KEY 7
 #define NODE_FUNC 8
+#define NODE_TRUE 9
+#define NODE_FALSE 10
+#define NODE_LAMBDA 11
 
 /* Special Forms */
 #define NODE_SPECIAL_START 100
@@ -43,8 +54,14 @@ void freenode(node *n);
 #define NODE_META 105
 #define NODE_LETSTAR 106
 #define NODE_DEFBANG 107
+#define NODE_DO 108
+#define NODE_IF 109
+#define NODE_FNSTAR 110
 
-static char *node_types[] = {"nil", "list", "symbol", "int", "string", "vector", "hashmap", "keyword", "function", NULL};
-static char *special_forms[] = {"quote", "quasiquote", "unquote", "splice-unquote", "deref", "with-meta", "let*", "def!", NULL};
+
+static char *node_types[] = 
+    {"nil", "list", "symbol", "int", "string", "vector", "hashmap", "keyword", "function", "true", "false", "lambda", NULL};
+static char *special_forms[] = 
+    {"quote", "quasiquote", "unquote", "splice-unquote", "deref", "with-meta", "let*", "def!", "do", "if", "fn*", NULL};
 
 #endif

@@ -106,6 +106,38 @@ node *EVAL(node *t, Env *env)
 					return EVAL(clause, e);
 				}
 				break;
+			case NODE_DO:
+				{
+					node *clauses =  t -> right;
+					node *a = eval_tree(clauses,env);
+
+					while(a && a -> right)
+						a = a -> right;
+
+					return a -> left;
+				}
+				break;
+			case NODE_IF:
+				{
+					node *cond = EVAL(t -> right -> left, env);
+					if(!cond || cond -> type == NODE_NIL || cond -> type == NODE_FALSE) {
+						if(!t -> right -> right -> right)
+							return newnode(NODE_NIL,NULL,NULL);
+						return EVAL(t -> right -> right -> right -> left, env);
+					}
+					return EVAL(t -> right -> right -> left, env);
+				}
+				break;
+			case NODE_FNSTAR:
+				{
+					/* Return a function closure */	
+					node *c = newnode(NODE_LAMBDA, NULL, NULL);
+					c -> left = t -> right -> left; /* parameter list */
+					c -> right = t -> right -> right -> left; /* function body */
+					c -> value.node_env = env; /* environment */
+					return c;
+				}
+				break;
 		}
 	}
 	/* Now it is a list so apply first element to the rest of the list */
@@ -126,6 +158,11 @@ node *eval_apply(node *f, node *args, Env *env) {
 		return func(args);
 	}
 
+	/* Is it a lambda closure */
+	if(f && f -> type == NODE_LAMBDA) {
+		Env *e = newenv(f -> value.node_env, f -> left, args);
+		return EVAL(f -> right, e);
+	}
 	return NULL;
 }
 
@@ -144,6 +181,11 @@ char *rep(char *s, Env *env)
 	return o;
 }
 
+void initialise(Env *env)
+{
+	rep("(def! not (fn* (a) (if a false true)))", env);
+}
+
 int main()
 {
 	static char *line_read = (char *)NULL;
@@ -151,6 +193,8 @@ int main()
 	Env *env = new_repl_env();
 
 	exception_init();
+	initialise(env);
+
 	while(1) {
 	  	/* If the buffer has already been allocated,
      			return the memory to the free pool. */

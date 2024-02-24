@@ -4,14 +4,33 @@
 #include <stdio.h>
 #include <string.h>
 #include "exceptions.h"
+#include "printer.h"
 
 /* An environment is a hashmap (herein a list of pairs) of NODE_SYMBOLs with nodes following as values */
 
-Env *newenv(Env* outer)
+Env *newenv(Env* outer, node *binds, node *exprs)
 {
     Env *e = GC_MALLOC(sizeof(Env));
     e -> outer = outer;
     e -> hashmap = NULL;
+
+    while(binds && binds -> left) {
+        if(strcmp(binds -> left -> value.string_value, "&") == 0) {
+            binds = binds -> right;
+            if(!exprs) exprs = newnode(NODE_LIST,NULL,NULL);
+            env_set(e, binds -> left, exprs);
+            printf("tail binding %s\n",binds -> left -> value.string_value);
+            (void) prn(exprs);
+            return e;
+        }
+        if(!exprs || exprs -> left == NULL)
+            env_set(e, binds -> left, newnode(NODE_LIST,NULL,NULL));
+        else {
+            env_set(e, binds -> left, exprs -> left);
+            exprs = exprs -> right;
+        }
+        binds = binds -> right;
+    }
     return e;
 }
 

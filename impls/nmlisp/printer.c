@@ -121,7 +121,6 @@ void enquote_string(char *d, char *s)
     d[w] = '\0';
 }
 
-
 void sprintnode(Writer *w, node *tree, int readably)
 {
     node *t = tree;
@@ -143,17 +142,23 @@ void sprintnode(Writer *w, node *tree, int readably)
         case NODE_NIL:
             writer_puts(w,"nil");
             break;
+        case NODE_TRUE:
+            writer_puts(w,"true");
+            break;
+        case NODE_FALSE:
+            writer_puts(w,"false");
+            break;
         case NODE_STRING:
-            writer_putc(w, '"');
             if(readably) {
                 char *s = GC_MALLOC(2*strlen(tree -> value.string_value));
+                writer_putc(w, '"');
                 enquote_string(s, tree -> value.string_value);
                 writer_puts(w,s);
+                writer_putc(w, '"');
                 GC_FREE(s);
             }
             else
                 writer_puts(w, tree -> value.string_value);
-            writer_putc(w, '"');
             break;
         case NODE_LIST:
             writer_putc(w,'(');
@@ -207,6 +212,12 @@ void sprintnode(Writer *w, node *tree, int readably)
         case NODE_LETSTAR:
             writer_puts(w,special_forms[tree -> type - NODE_SPECIAL_START]);
             break;
+        case NODE_FUNC:
+            writer_puts(w,"#builtin");
+            break;
+        case NODE_LAMBDA:
+            writer_puts(w,"#function");
+            break;
     }
 }
 
@@ -222,3 +233,60 @@ char *pr_str(node *tree, int readably)
     GC_FREE(w);
     return output;
 }
+
+char *print_to_string(node *tree, char *sep, int readably)
+{
+    Writer *w = GC_MALLOC(sizeof(Writer));
+    char *output = NULL;
+    node *t = tree;
+    int b = strlen(sep);
+    int i = 0;
+
+    writer_capacity(w,1);
+    while(t) {
+        sprintnode(w, t -> left, readably);
+        t = t -> right;
+        writer_puts(w,sep);
+        i++;
+    }
+    /* Backspace last seperator */
+    if(i && b) {
+        for(i = 0; i < b; i++)
+            writer_backspace(w);
+    }
+    output = w -> buffer;
+    w -> buffer = NULL;
+    GC_FREE(w);
+    return output;
+}
+
+node *prn(node *tree)
+{
+    char *s = print_to_string(tree, " ", 1);
+    printf("%s\n", s);
+    return newnode(NODE_NIL, NULL, NULL);
+}
+
+node *pr_dash_str(node *tree) 
+{
+    char *s = print_to_string(tree, " ", 1);
+    node *r = newnode(NODE_STRING, NULL, NULL);
+    r -> value.string_value = s;
+    return r;
+}
+
+node *str(node *tree) 
+{
+    char *s = print_to_string(tree, "", 0);
+    node *r = newnode(NODE_STRING, NULL, NULL);
+    r -> value.string_value = s;
+    return r;
+}
+
+node *println(node *tree)
+{
+    char *s = print_to_string(tree, " ", 0);
+    printf("%s\n", s);
+    return newnode(NODE_NIL, NULL, NULL);    
+}
+
