@@ -2,6 +2,9 @@
 #include <stdlib.h>
 #include <signal.h>
 #include <string.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
 #include <gc.h>
 #include "gc/leak_detector.h"
 #include "reader.h"
@@ -191,6 +194,7 @@ char *inplace_dequote_string(char *s)
     s[w] = '\0';
     return s;
 }
+
 node *read_atom(Reader *r)
 {
     char *t = reader_next(r);
@@ -433,7 +437,7 @@ node *read_form(Reader *r)
     if(t[0] == '@') {
         t = reader_next(r);
         n = read_form(r);
-        return newnode(NODE_LIST,newnode(NODE_DEREF,NULL,NULL),newnode(NODE_LIST,n,NULL));
+        return newnode(NODE_LIST,newsymbol("deref"),newnode(NODE_LIST,n,NULL));
     }   
     if(t[0] == '^') {
         t = reader_next(r);
@@ -451,6 +455,46 @@ node *read_str(char *str)
     r -> position = 0;
     r -> tokens = tokenise(str);
     return read_form(r);
+}
+
+node *read_dash_string(node *t)
+{
+    if(!t || t -> type != NODE_LIST || !t -> left || t -> left -> type != NODE_STRING) {
+        printf("reading non-string\n");
+        return NULL;
+    }
+    return read_str(t -> left -> value.string_value);
+}
+
+node *slurp(node *t)
+{
+    /* Read a file */
+    char *file, *buffer;
+    FILE *fd;
+    struct stat buf;
+    int sz;
+    node *a;
+
+    if(!t || t -> type != NODE_LIST || !t -> left || t -> left -> type != NODE_STRING) {
+        printf("slurping non-string file name");
+        return NULL;
+    }
+    file = t -> left -> value.string_value;
+    if((fd = fopen(file, "r")) == NULL) {
+        printf("file not found %s\n", file);
+        return NULL;
+    }
+    fstat(fileno(fd), &buf);
+    sz = buf.st_size;
+
+    buffer = GC_MALLOC(sz+1);
+    fread(buffer, 1, sz, fd);
+    buffer[sz] = '\0';
+
+    a = newnode(NODE_STRING, NULL, NULL);
+    a -> value.string_value = buffer;
+
+    return a;
 }
 
 char *reader_peek(Reader *r)

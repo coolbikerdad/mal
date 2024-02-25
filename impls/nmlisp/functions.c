@@ -3,6 +3,7 @@
 #include "types.h"
 #include "env.h"
 #include "printer.h"
+#include "reader.h"
 
 /*
 Functions
@@ -16,13 +17,6 @@ node *newfunc(node *(*func)(node *))
     n1 = newnode(NODE_FUNC,NULL,NULL);
     n1 -> value.func_value = func;
     return n1;
-}
-
-node *newsymbol(char *name) 
-{
-    node *n2 = newnode(NODE_SYMBOL,NULL,NULL);
-    n2 -> value.string_value = name;
-    return n2;
 }
 
 /* An environment is a hashmap (herein a list of pairs) of NODE_SYMBOLs with nodes following as values */
@@ -334,6 +328,63 @@ void env_add_func(Env *env, char *name, node *(*func)(node *))
     env_set(env, newsymbol(name), newfunc(func));
 }
 
+node *EVAL(node *, Env *);
+
+node *eval(node *t)
+{
+	/* Evaluate the tree in the REPL environment */
+	if(!t || t -> type != NODE_LIST || !t -> left)
+		return NULL;
+	return EVAL(t -> left, repl_environment);
+}
+
+node *atom(node *t)
+{
+    if(!t || t -> type != NODE_LIST)
+        return NULL;
+    
+    return newnode(NODE_ATOM, t -> left, NULL);
+}
+
+node *atom_query(node *t)
+{
+    if(!t || t -> type != NODE_LIST || t -> left == NULL || t -> left -> type != NODE_ATOM)
+        return newnode(NODE_FALSE, NULL, NULL);
+    return newnode(NODE_TRUE, NULL, NULL);
+}
+
+node *deref_atom(node *t)
+{
+    if(!t || t -> type != NODE_LIST || t -> left == NULL || t -> left -> type != NODE_ATOM)
+        return NULL;
+    return t -> left -> left;
+}
+
+node *reset_bang(node *t)
+{
+    node *a, *v;
+    if(!t || t -> type != NODE_LIST || t -> left == NULL || t -> right == NULL || t -> left -> type != NODE_ATOM)
+        return NULL;
+
+    a = t -> left;
+    if(!t -> right -> left)
+        return NULL;
+    v = t -> right -> left;
+    a -> left = v;
+    return v;
+}
+
+node *swap_bang(node *t)
+{
+    node *a = t -> left;
+    node *f = t -> right -> left;
+    node *args = newnode(NODE_LIST, a -> left, t -> right -> right);
+    node *result = EVAL(newnode(NODE_LIST,f,args), repl_environment);
+
+    a -> left = result;
+    return result;
+}
+
 Env *new_repl_env() 
 {
     Env *env = newenv(NULL, NULL, NULL);
@@ -354,5 +405,13 @@ Env *new_repl_env()
     env_add_func(env, "pr-str", pr_dash_str);
     env_add_func(env, "println", println);
     env_add_func(env, "str", str);
+    env_add_func(env, "read-string", read_dash_string);
+    env_add_func(env, "slurp", slurp);
+    env_add_func(env, "eval", eval);
+    env_add_func(env, "atom", atom);
+    env_add_func(env, "atom?", atom_query);
+    env_add_func(env, "deref", deref_atom);
+    env_add_func(env, "reset!", reset_bang);
+    env_add_func(env, "swap!", swap_bang);
     return env;
 }

@@ -9,4 +9,6 @@ void env_set(Env *env, node *sym, node *val);
 Env *env_find(Env *env, node *sym);
 node *env_get(Env *env, node *sym);
 
+extern Env *repl_environment;
+
 #endif

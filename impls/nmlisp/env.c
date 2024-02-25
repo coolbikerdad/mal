@@ -6,6 +6,9 @@
 #include "exceptions.h"
 #include "printer.h"
 
+/* Global repl_env needed for eval */
+Env *repl_environment = NULL;
+
 /* An environment is a hashmap (herein a list of pairs) of NODE_SYMBOLs with nodes following as values */
 
 Env *newenv(Env* outer, node *binds, node *exprs)

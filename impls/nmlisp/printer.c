@@ -194,7 +194,7 @@ void sprintnode(Writer *w, node *tree, int readably)
         case NODE_QQUOTE:
         case NODE_UQUOTE:
         case NODE_SUQUOTE:
-        case NODE_DEREF:
+        /* case NODE_DEREF: */
         case NODE_META:
         /*
             writer_putc(w, '(');
@@ -217,6 +217,11 @@ void sprintnode(Writer *w, node *tree, int readably)
             break;
         case NODE_LAMBDA:
             writer_puts(w,"#function");
+            break;
+        case NODE_ATOM:
+            writer_puts(w,"(atom ");
+            sprintnode(w, t -> left, readably);
+            writer_puts(w,")");
             break;
     }
 }

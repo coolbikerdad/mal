@@ -28,6 +28,8 @@ typedef struct Env {
 } Env;
 
 node *newnode(int type, node *left, node *right);
+node *newsymbol(char *)
+;
 void freenode(node *n);
 
 /* Node types */
@@ -43,6 +45,7 @@ void freenode(node *n);
 #define NODE_TRUE 9
 #define NODE_FALSE 10
 #define NODE_LAMBDA 11
+#define NODE_ATOM 12
 
 /* Special Forms */
 #define NODE_SPECIAL_START 100
@@ -50,7 +53,7 @@ void freenode(node *n);
 #define NODE_QQUOTE 101
 #define NODE_UQUOTE 102
 #define NODE_SUQUOTE 103
-#define NODE_DEREF 104
+/*#define NODE_DEREF 104 */
 #define NODE_META 105
 #define NODE_LETSTAR 106
 #define NODE_DEFBANG 107
@@ -60,8 +63,8 @@ void freenode(node *n);
 
 
 static char *node_types[] = 
-    {"nil", "list", "symbol", "int", "string", "vector", "hashmap", "keyword", "function", "true", "false", "lambda", NULL};
+    {"nil", "list", "symbol", "int", "string", "vector", "hashmap", "keyword", "function", "true", "false", "lambda", "atom", NULL};
 static char *special_forms[] = 
-    {"quote", "quasiquote", "unquote", "splice-unquote", "deref", "with-meta", "let*", "def!", "do", "if", "fn*", NULL};
+    {"quote", "quasiquote", "unquote", "splice-unquote", /*"deref"*/ "XXX", "with-meta", "let*", "def!", "do", "if", "fn*", NULL};
 
 #endif

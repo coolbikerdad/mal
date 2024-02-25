@@ -16,6 +16,13 @@ node *newnode(int type, node *left, node *right)
     return n;
 }
 
+node *newsymbol(char *s)
+{
+    node *n = newnode(NODE_SYMBOL, NULL, NULL);
+    n -> value.string_value = s;
+    return n;
+}
+
 void freenode(node *n)
 {
         /* May want to zero fields, or recurse the structure one day */
