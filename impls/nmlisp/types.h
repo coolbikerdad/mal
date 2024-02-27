@@ -53,18 +53,18 @@ void freenode(node *n);
 #define NODE_QQUOTE 101
 #define NODE_UQUOTE 102
 #define NODE_SUQUOTE 103
-/*#define NODE_DEREF 104 */
-#define NODE_META 105
-#define NODE_LETSTAR 106
-#define NODE_DEFBANG 107
-#define NODE_DO 108
-#define NODE_IF 109
-#define NODE_FNSTAR 110
+#define NODE_META 104
+#define NODE_LETSTAR 105
+#define NODE_DEFBANG 106
+#define NODE_DO 107
+#define NODE_IF 108
+#define NODE_FNSTAR 109
+#define NODE_QQE 110
 
 
 static char *node_types[] = 
     {"nil", "list", "symbol", "int", "string", "vector", "hashmap", "keyword", "function", "true", "false", "lambda", "atom", NULL};
 static char *special_forms[] = 
-    {"quote", "quasiquote", "unquote", "splice-unquote", /*"deref"*/ "XXX", "with-meta", "let*", "def!", "do", "if", "fn*", NULL};
+    {"quote", "quasiquote", "unquote", "splice-unquote", "with-meta", "let*", "def!", "do", "if", "fn*", "quasiquoteexpand", NULL};
 
 #endif

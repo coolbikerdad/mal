@@ -22,6 +22,10 @@ void printnode(node *tree)
         case NODE_NIL:
             printf("nil");
             break;
+        case NODE_LAMBDA:
+        case NODE_FNSTAR:
+            printf("fn*");
+            break;
         case NODE_STRING:
             printf("\"%s\"", tree -> value.string_value);
             break;
@@ -42,7 +46,12 @@ void printnode(node *tree)
                 printf(" ");
             }
             printf("<-]");
-            break;    
+            break; 
+        case NODE_QUOTE:
+        case NODE_QQUOTE:
+        case NODE_SUQUOTE:
+            printf("%s", node_types[t -> type - NODE_SPECIAL_START]);
+            break;
     }
 }
 
@@ -142,6 +151,9 @@ void sprintnode(Writer *w, node *tree, int readably)
         case NODE_NIL:
             writer_puts(w,"nil");
             break;
+        case NODE_FNSTAR:
+            writer_puts(w,"fn*");
+            break;
         case NODE_TRUE:
             writer_puts(w,"true");
             break;
@@ -194,20 +206,7 @@ void sprintnode(Writer *w, node *tree, int readably)
         case NODE_QQUOTE:
         case NODE_UQUOTE:
         case NODE_SUQUOTE:
-        /* case NODE_DEREF: */
         case NODE_META:
-        /*
-            writer_putc(w, '(');
-            writer_puts(w, node_types[tree -> type]);
-            writer_putc(w, ' ');
-            sprintnode(w, t -> left, readably);
-            if(t -> right) {
-                writer_putc(w, ' ');
-                sprintnode(w, t -> right, readably);               
-            }
-            writer_putc(w,')');
-            break;
-        */
         case NODE_DEFBANG:
         case NODE_LETSTAR:
             writer_puts(w,special_forms[tree -> type - NODE_SPECIAL_START]);

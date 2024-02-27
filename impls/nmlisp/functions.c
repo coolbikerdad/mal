@@ -296,7 +296,7 @@ int nodes_equal(node *x, node *y)
         return a;
     }
 
-    if(x -> type == NODE_STRING || x -> type == NODE_KEY) {
+    if(x -> type == NODE_STRING || x -> type == NODE_KEY || x -> type == NODE_SYMBOL) {
         if(strcmp(x -> value.string_value, y -> value.string_value) == 0)
             a = NODE_TRUE;
         return a;
@@ -385,6 +385,86 @@ node *swap_bang(node *t)
     return result;
 }
 
+node *vec2list(node *t)
+{
+    /* Convert a vector to a list */
+    node *l;
+    node *tail;
+
+    t = t -> left;
+    l = newnode(NODE_LIST, NULL, NULL);
+    tail = l;
+
+    while(t && t -> left && t -> left != NULL) {
+        node *n = newnode(NODE_LIST, t -> left, NULL);
+        tail -> right = n;
+        tail = n;
+        t = t -> right;
+    }
+    if(l -> right) return l -> right;
+    return l;
+}
+
+node *list2vec(node *t)
+{
+    /* Convert a list to a vector */
+    node *l;
+    node *tail;
+
+    t = t -> left;
+    l = newnode(NODE_VEC, NULL, NULL);
+    tail = l;
+
+    while(t && t -> left && t -> left != NULL) {
+        node *n = newnode(NODE_VEC, t -> left, NULL);
+        tail -> right = n;
+        tail = n;
+        t = t -> right;
+    }
+    if(l -> right) return l -> right;
+    return l;
+}
+
+node *cons(node *t)
+{
+    node *head = t -> left;
+    node *tail = t -> right -> left;
+    if(tail -> left == NULL)
+        tail = NULL;
+    if(tail && tail -> type == NODE_VEC) {
+        /* Consing into a vector, but we need to create a list */
+        tail = vec2list(newnode(NODE_VEC,tail,NULL));
+    }
+    return newnode(NODE_LIST, head, tail);
+}
+
+node *concat(node *t) 
+{
+    /* Concatenate zero or more lists */
+    node *list, *tail;
+
+    if(!t || !t -> left)
+        return newnode(NODE_LIST, NULL, NULL);
+
+    list = newnode(NODE_LIST, NULL, NULL);
+    tail = list;
+
+    while(t && t -> left != NULL) {
+        /* Iterate over list parameters */
+        node *l = t -> left;
+        while(l && l -> left != NULL) {
+            node *n = newnode(NODE_LIST, l -> left, NULL);
+            tail -> right = n;
+            tail = n;
+            l = l -> right;
+        }
+        t = t -> right;
+    }
+    if(tail == list)
+        return list;
+    return list -> right;
+}
+
 Env *new_repl_env() 
 {
     Env *env = newenv(NULL, NULL, NULL);
@@ -413,5 +493,9 @@ Env *new_repl_env()
     env_add_func(env, "deref", deref_atom);
     env_add_func(env, "reset!", reset_bang);
     env_add_func(env, "swap!", swap_bang);
-    return env;
+    env_add_func(env, "cons", cons);
+    env_add_func(env, "vec", list2vec);
+    env_add_func(env, "concat", concat);
+    env_add_func(env, "vec2list", vec2list);
+    return env; 
 }
