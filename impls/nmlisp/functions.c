@@ -4,6 +4,7 @@
 #include "env.h"
 #include "printer.h"
 #include "reader.h"
+#include "exceptions.h"
 
 /*
 Functions
@@ -465,6 +466,41 @@ node *concat(node *t)
     return list -> right;
 }
 
+node *nth(node *t)
+{
+    node *list = t -> left;
+    node *n = t -> right -> left;
+    int i = n -> value.int_value;
+
+    while(i--) {
+        if(!list) {
+            break;
+        }
+        list = list -> right;
+    }
+    if(!list) {
+        throw_exception("nth out of bounds", 1);
+        return NULL;
+    }
+    return list -> left;
+}
+
+node *first(node *t) {
+    if(!t || !t -> left || !t -> left -> left)
+        return newnode(NODE_NIL, NULL, NULL);
+    return t -> left -> left;
+}
+
+node *rest(node *t) {
+    node *r;
+    if(!t || !t -> left || !t -> left -> right)
+        return newnode(NODE_LIST, NULL, NULL);
+    r = t -> left -> right;
+    if(r -> type == NODE_VEC)
+        return vec2list(newnode(NODE_LIST,r,NULL));
+    return r;
+}
+
 Env *new_repl_env() 
 {
     Env *env = newenv(NULL, NULL, NULL);
@@ -497,5 +533,8 @@ Env *new_repl_env()
     env_add_func(env, "vec", list2vec);
     env_add_func(env, "concat", concat);
     env_add_func(env, "vec2list", vec2list);
+    env_add_func(env, "nth", nth);
+    env_add_func(env, "first", first);
+    env_add_func(env, "rest", rest);
     return env; 
 }

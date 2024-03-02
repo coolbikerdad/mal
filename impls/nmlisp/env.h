@@ -8,7 +8,7 @@ Env *newenv(Env *outer, node *binds, node *exprs);
 void env_set(Env *env, node *sym, node *val);
 Env *env_find(Env *env, node *sym);
 node *env_get(Env *env, node *sym);
-
+int is_macro_call(node *, Env *);
 extern Env *repl_environment;
 
 #endif

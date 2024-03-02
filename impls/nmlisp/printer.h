@@ -5,6 +5,7 @@ node *prn(node *);
 node *println(node *);
 node *pr_dash_str(node *);
 node *str(node *);
+char *print_to_string(node *, char *, int);
 
 void printnode(node *);
 

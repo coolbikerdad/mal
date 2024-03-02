@@ -208,14 +208,28 @@ void sprintnode(Writer *w, node *tree, int readably)
         case NODE_SUQUOTE:
         case NODE_META:
         case NODE_DEFBANG:
+        case NODE_DEFMACRO:
+        case NODE_MACROEXPAND:
         case NODE_LETSTAR:
             writer_puts(w,special_forms[tree -> type - NODE_SPECIAL_START]);
             break;
         case NODE_FUNC:
             writer_puts(w,"#builtin");
             break;
+        case NODE_IF:
+            writer_puts(w,"if");
+            break;
         case NODE_LAMBDA:
-            writer_puts(w,"#function");
+            writer_puts(w,"(lambda ");
+            sprintnode(w, t -> left, readably);
+            sprintnode(w, t -> right, readably);
+            writer_puts(w,")"); 
+            break;
+        case NODE_MACRO:
+            writer_puts(w,"(macro ");
+            sprintnode(w, t -> left, readably);
+            sprintnode(w, t -> right, readably);
+            writer_puts(w,")");
             break;
         case NODE_ATOM:
             writer_puts(w,"(atom ");

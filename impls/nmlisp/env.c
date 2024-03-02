@@ -81,4 +81,15 @@ node *env_get(Env *env, node *sym)
     printf("symbol %s not found\n", s);
     throw_exception("symbol not found", 1);
     return NULL;
-}    
+}
+
+int is_macro_call(node *tree, Env *env)
+{
+    if(tree && tree -> type == NODE_LIST && tree -> left && tree -> left ->type == NODE_SYMBOL) {
+        node *sym = tree -> left;
+        node *v = env_get(env, sym);
+        if(v && v -> type == NODE_MACRO)
+            return 1;
+    }
+    return 0;
+}
