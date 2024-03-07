@@ -22,7 +22,7 @@ Env *newenv(Env* outer, node *binds, node *exprs)
             binds = binds -> right;
             if(!exprs) exprs = newnode(NODE_LIST,NULL,NULL);
             env_set(e, binds -> left, exprs);
-            printf("tail binding %s\n",binds -> left -> value.string_value);
+            /* printf("tail binding %s\n",binds -> left -> value.string_value); */
             (void) prn(exprs);
             return e;
         }
@@ -65,6 +65,8 @@ node *env_get(Env *env, node *sym)
 {
     node *e = env -> hashmap;
     char *s = sym -> value.string_value;
+    char *buf;
+    node *exc;
 
     while(e) {
         node *n = e -> left;
@@ -78,8 +80,13 @@ node *env_get(Env *env, node *sym)
         return env_get(env -> outer, sym);
     
     /* raise not found error */
-    printf("symbol %s not found\n", s);
-    throw_exception("symbol not found", 1);
+    buf = GC_MALLOC(strlen(s) + 20);
+    strcpy(buf,"'");
+    strcpy(buf+1,s);
+    strcpy(buf+strlen(buf),"' not found");
+    exc = newnode(NODE_STRING, NULL, NULL);
+    exc -> value.string_value = buf;
+    throw_exception(buf, exc, 1);
     return NULL;
 }
 

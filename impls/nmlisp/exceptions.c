@@ -27,7 +27,7 @@ void exception_endbuf() {
 	__bufs = (jmp_buf*) GC_realloc((void*) __bufs, sizeof(jmp_buf) * __buf_count);
 }
 
-void throw_exception(const char *msg, int code) {
+void throw_exception(const char *msg, node *value, int code) {
 	__last_exception.code = code;
 	if (!__buf_count) {
 		fprintf(stderr, "Uncaught exception of code %d and message: %s\n", code, msg);
@@ -39,6 +39,7 @@ void throw_exception(const char *msg, int code) {
 	GC_free((void*) __last_exception.msg);
 	__last_exception.msg = (char*) GC_malloc( sizeof(char)*(strlen(msg)+1) );
 	strcpy(__last_exception.msg, msg);
+	__last_exception.value = value;
 	longjmp(__bufs[__buf_count-1], code);
 }
 

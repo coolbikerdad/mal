@@ -211,6 +211,8 @@ void sprintnode(Writer *w, node *tree, int readably)
         case NODE_DEFMACRO:
         case NODE_MACROEXPAND:
         case NODE_LETSTAR:
+        case NODE_TRY:
+        case NODE_CATCH:
             writer_puts(w,special_forms[tree -> type - NODE_SPECIAL_START]);
             break;
         case NODE_FUNC:

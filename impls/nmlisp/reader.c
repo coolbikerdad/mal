@@ -9,6 +9,7 @@
 #include "gc/leak_detector.h"
 #include "reader.h"
 #include "printer.h"
+#include "exceptions.h"
 
 #define PCRE2_CODE_UNIT_WIDTH 8
 #include <pcre2.h>
@@ -108,7 +109,7 @@ char **tokenise(char *str)
                 break;
             }
             if(end - start > MAX_TOKEN_SIZE) {
-                printf("overlong token found");
+                throw_exception("overlong token found", NULL, 1);
             }
             if(str[start] != ';') {
                 /* Ignore comments*/
@@ -167,7 +168,7 @@ char *inplace_dequote_string(char *s)
 
     for(r = 0; r < l; r++, w++) {
         if(s[r] == '\\' && r == l-1) {
-            printf("unbalanced backslash\n");
+            throw_exception("unbalanced backslash", NULL, 1);
             return NULL;
         }
         if(s[r] == '\\' && r < l-1) {
@@ -213,7 +214,7 @@ node *read_atom(Reader *r)
         /* Make sure string is balanced */
         int l = strlen(t);
         if(l <= 1 || t[l-1] != '"') {
-            printf("unbalanced quote in string\n");
+            throw_exception("unbalanced quote in string", NULL, 1);
             return NULL;
         }
         n = newnode(NODE_STRING, NULL, NULL);
@@ -227,7 +228,7 @@ node *read_atom(Reader *r)
     if(c == ':') {
         int l = strlen(t);
         if(l == 1) {
-            printf("missing key\n");
+            throw_exception("missing key", NULL, 1);
             return NULL;
         }
         n = newnode(NODE_KEY, NULL, NULL);
@@ -265,7 +266,7 @@ node *read_list(Reader *r)
     /* Next symbol should be a '(' */
     char *t = reader_next(r);
     if(t[0] != '(') {
-        printf("oops in read list, not an open paren to start\n");
+        throw_exception("oops in read list, not an open paren to start", NULL, 1);
         return NULL;
     }
 
@@ -274,7 +275,7 @@ node *read_list(Reader *r)
         /* Look for a closing paren */
         char *p = reader_peek(r);
         if(!p) {
-            printf("end of input\n");
+            throw_exception("end of input", NULL, 1);
             return NULL;
         }
         if(p[0] == ')') {
@@ -313,7 +314,7 @@ node *read_vector(Reader *r)
     /* Next symbol should be a '(' */
     char *t = reader_next(r);
     if(t[0] != '[') {
-        printf("oops in read vector, not an open paren to start\n");
+        throw_exception("oops in read vector, not an open paren to start", NULL, 1);
         return NULL;
     }
 
@@ -322,7 +323,7 @@ node *read_vector(Reader *r)
         /* Look for a closing paren */
         char *p = reader_peek(r);
         if(!p) {
-            printf("end of input\n");
+            throw_exception("end of input", NULL, 1);
             return NULL;
         }
         if(p[0] == ']') {
@@ -361,7 +362,7 @@ node *read_hashmap(Reader *r)
     /* Next symbol should be a '{' */
     char *t = reader_next(r);
     if(t[0] != '{') {
-        printf("oops in read hashmap, not an open paren to start\n");
+        throw_exception("oops in read hashmap, not an open paren to start", NULL, 1);
         return NULL;
     }
 
@@ -370,7 +371,7 @@ node *read_hashmap(Reader *r)
         /* Look for a closing paren */
         char *p = reader_peek(r);
         if(!p) {
-            printf("end of input\n");
+            throw_exception("end of input", NULL, 1);
             return NULL;
         }
         if(p[0] == '}') {
@@ -460,7 +461,7 @@ node *read_str(char *str)
 node *read_dash_string(node *t)
 {
     if(!t || t -> type != NODE_LIST || !t -> left || t -> left -> type != NODE_STRING) {
-        printf("reading non-string\n");
+        throw_exception("reading non-string", t, 1);
         return NULL;
     }
     return read_str(t -> left -> value.string_value);
@@ -476,12 +477,12 @@ node *slurp(node *t)
     node *a;
 
     if(!t || t -> type != NODE_LIST || !t -> left || t -> left -> type != NODE_STRING) {
-        printf("slurping non-string file name");
+        throw_exception("slurping non-string file name", t, 1);
         return NULL;
     }
     file = t -> left -> value.string_value;
     if((fd = fopen(file, "r")) == NULL) {
-        printf("file not found %s\n", file);
+        throw_exception("file not found", t -> left, 1);
         return NULL;
     }
     fstat(fileno(fd), &buf);
