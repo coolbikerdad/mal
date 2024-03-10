@@ -17,7 +17,8 @@
 /* The token regular expression we want is:
     [\s,]*(~@|[\[\]{}()'`~^@]|"(?:\\.|[^\\"])*"?|;.*|[^\s\[\]{}('"`,;)]*)
 */
-#define TOKEN_RE "[\\s,]*(~@|[\\[\\]{}()'`~^@]|\"(?:\\\\.|[^\\\\\"])*\"?|;.*|[^\\s\\[\\]{}('\"`,;)]*)"
+#define TOKEN_RE "[\\s,]*(~@|[\\[\\]{}()'`~^@]|\"(?:\\\\.|[^\\\\\"])*\"?|;.*|\
+[^\\s\\[\\]{}('\"`,;)]*)"
 #define MAX_TOKEN_SIZE 1024
 #define TOKEN_INCREMENT 1
 
@@ -70,7 +71,8 @@ char **tokenise(char *str)
         /* Compilation failed, should not happen */
         PCRE2_UCHAR buffer[256];
         pcre2_get_error_message(errornumber, buffer, sizeof(buffer));
-        printf("PCRE2 compilation failed at offset %d: %s\n", (int)erroroffset, buffer);
+        printf("PCRE2 compilation failed at offset %d: %s\n", 
+               (int)erroroffset, buffer);
         raise(SIGSEGV);
     }
 
@@ -90,7 +92,7 @@ char **tokenise(char *str)
             NULL);                /* use default match context */
 
         if(rc < 0) {
-            /* No match, should not happen as TOKEN_RE will match an empty string */
+            /* No match, should not happen - RE will match an empty string */
             printf("no match");
             pcre2_match_data_free(match_data);
             return NULL;
@@ -113,18 +115,17 @@ char **tokenise(char *str)
             }
             if(str[start] != ';') {
                 /* Ignore comments*/
-
                 strncpy(token_buffer,&str[start],end-start);
                 token_buffer[end-start] = '\0';
-                /* printf("Token: [%s]\n", token_buffer); */
-                /* Store token in return list */
 
+                /* Store token in return list */
                 if(token_count == token_capacity - 1) {
                     token_capacity += TOKEN_INCREMENT;
-                    /* printf("realloc token capacity to %d\n", token_capacity); */
-                    tokens = (char **)GC_REALLOC(tokens, token_capacity*sizeof(char *));
+                    tokens = (char **)GC_REALLOC(tokens,
+                                        token_capacity*sizeof(char *));
                 }
-                tokens[token_count] = (char *)GC_MALLOC(strlen(token_buffer));
+                tokens[token_count] = 
+                    (char *)GC_MALLOC(strlen(token_buffer));
                 strcpy(tokens[token_count],token_buffer);
                 token_count++;
             }
@@ -266,7 +267,7 @@ node *read_list(Reader *r)
     /* Next symbol should be a '(' */
     char *t = reader_next(r);
     if(t[0] != '(') {
-        throw_exception("oops in read list, not an open paren to start", NULL, 1);
+        throw_exception("no open paren to startlist", NULL, 1);
         return NULL;
     }
 
@@ -280,7 +281,7 @@ node *read_list(Reader *r)
         }
         if(p[0] == ')') {
             /* End of list, we are done */
-            p = reader_next(r);
+            (void) reader_next(r);
             if(!list)
                 list = newnode(NODE_LIST,NULL,NULL);
             return list;
@@ -314,7 +315,7 @@ node *read_vector(Reader *r)
     /* Next symbol should be a '(' */
     char *t = reader_next(r);
     if(t[0] != '[') {
-        throw_exception("oops in read vector, not an open paren to start", NULL, 1);
+        throw_exception("no open paren to start vector", NULL, 1);
         return NULL;
     }
 
@@ -328,7 +329,7 @@ node *read_vector(Reader *r)
         }
         if(p[0] == ']') {
             /* End of list, we are done */
-            p = reader_next(r);
+            (void) reader_next(r);
             if(!list)
                 list = newnode(NODE_VEC,NULL,NULL);
             return list;
@@ -362,7 +363,7 @@ node *read_hashmap(Reader *r)
     /* Next symbol should be a '{' */
     char *t = reader_next(r);
     if(t[0] != '{') {
-        throw_exception("oops in read hashmap, not an open paren to start", NULL, 1);
+        throw_exception("not an open paren to start hashmap", NULL, 1);
         return NULL;
     }
 
@@ -376,7 +377,7 @@ node *read_hashmap(Reader *r)
         }
         if(p[0] == '}') {
             /* End of list, we are done */
-            p = reader_next(r);
+            (void) reader_next(r);
             if(!list)
                 list = newnode(NODE_HASH,NULL,NULL);
             return list;
@@ -416,37 +417,47 @@ node *read_form(Reader *r)
     if(t[0] == '{')
         return read_hashmap(r);
     if(t[0] == '\'') {
-        t = reader_next(r);
+        (void) reader_next(r);
         n = read_form(r);
-        return newnode(NODE_LIST,newnode(NODE_QUOTE,NULL,NULL),newnode(NODE_LIST,n,NULL));
+        return newnode(NODE_LIST,
+                       newnode(NODE_QUOTE,NULL,NULL),
+                       newnode(NODE_LIST,n,NULL));
     }
     if(t[0] == '`') {
-        t = reader_next(r);
+        (void) reader_next(r);
         n = read_form(r);
-        return newnode(NODE_LIST,newnode(NODE_QQUOTE,NULL,NULL),newnode(NODE_LIST,n,NULL));
+        return newnode(NODE_LIST,
+                       newnode(NODE_QQUOTE,NULL,NULL),
+                       newnode(NODE_LIST,n,NULL));
     }
     if(t[0] == '~' && t[1] == '@') {
-        t = reader_next(r);
+        (void) reader_next(r);
         n = read_form(r);
-        return newnode(NODE_LIST,newnode(NODE_SUQUOTE,NULL,NULL),newnode(NODE_LIST,n,NULL));
+        return newnode(NODE_LIST,
+                       newnode(NODE_SUQUOTE,NULL,NULL),
+                       newnode(NODE_LIST,n,NULL));
     }
     if(t[0] == '~') {
-        t = reader_next(r);
+        (void) reader_next(r);
         n = read_form(r);
-        return newnode(NODE_LIST,newnode(NODE_UQUOTE,NULL,NULL),newnode(NODE_LIST,n,NULL));
+        return newnode(NODE_LIST,
+                       newnode(NODE_UQUOTE,NULL,NULL),
+                       newnode(NODE_LIST,n,NULL));
     }   
     if(t[0] == '@') {
-        t = reader_next(r);
+        (void) reader_next(r);
         n = read_form(r);
-        return newnode(NODE_LIST,newsymbol("deref"),newnode(NODE_LIST,n,NULL));
+        return newnode(NODE_LIST,newsymbol("deref"),
+                       newnode(NODE_LIST,n,NULL));
     }   
     if(t[0] == '^') {
-        t = reader_next(r);
+        (void) reader_next(r);
         n = read_form(r);
         n2 = read_form(r);
-        return newnode(NODE_LIST,newnode(NODE_META,NULL,NULL),newnode(NODE_LIST,n2,newnode(NODE_LIST,n,NULL)));
+        return newnode(NODE_LIST,
+                       newnode(NODE_META,NULL,NULL),
+                       newnode(NODE_LIST,n2,newnode(NODE_LIST,n,NULL)));
     }   
-
     return read_atom(r);
 }
 
@@ -460,7 +471,8 @@ node *read_str(char *str)
 
 node *read_dash_string(node *t)
 {
-    if(!t || t -> type != NODE_LIST || !t -> left || t -> left -> type != NODE_STRING) {
+    if(!t || t -> type != NODE_LIST || !t -> left || 
+        t -> left -> type != NODE_STRING) {
         throw_exception("reading non-string", t, 1);
         return NULL;
     }
@@ -476,7 +488,8 @@ node *slurp(node *t)
     int sz;
     node *a;
 
-    if(!t || t -> type != NODE_LIST || !t -> left || t -> left -> type != NODE_STRING) {
+    if(!t || t -> type != NODE_LIST || !t -> left || 
+        t -> left -> type != NODE_STRING) {
         throw_exception("slurping non-string file name", t, 1);
         return NULL;
     }

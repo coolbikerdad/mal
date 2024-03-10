@@ -28,8 +28,7 @@ typedef struct Env {
 } Env;
 
 node *newnode(int type, node *left, node *right);
-node *newsymbol(char *)
-;
+node *newsymbol(char *);
 void freenode(node *n);
 
 /* Node types */
@@ -67,10 +66,12 @@ void freenode(node *n);
 #define NODE_CATCH 114
 
 static char *node_types[] = 
-    {"nil", "list", "symbol", "int", "string", "vector", "hashmap", "keyword", "function", "true", "false", "lambda", "macro", "atom", NULL};
+    {"nil", "list", "symbol", "int", "string", "vector", "hashmap",
+     "keyword", "function", "true", "false", "lambda", "macro", "atom", 
+     NULL};
 static char *special_forms[] = 
-    {"quote", "quasiquote", "unquote", "splice-unquote", "with-meta", "let*", 
-     "def!", "do", "if", "fn*", "quasiquoteexpand", "defmacro!", "macroexpand", 
-     "try*", "catch*", NULL};
+    {"quote", "quasiquote", "unquote", "splice-unquote", "with-meta", 
+    "let*", "def!", "do", "if", "fn*", "quasiquoteexpand", "defmacro!", 
+    "macroexpand", "try*", "catch*", NULL};
 
 #endif

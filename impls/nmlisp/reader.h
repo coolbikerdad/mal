@@ -19,5 +19,4 @@ node *read_atom(Reader *);
 node *read_list(Reader *);
 node *read_str(char *);
 node *read_dash_string(node *);
-node *slurp(node *)
-;
+node *slurp(node *);

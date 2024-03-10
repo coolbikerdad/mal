@@ -82,7 +82,11 @@ node *quasiquote(node *tree, int in_a_list, int from_vector)
 		v -> left = newnode(NODE_SYMBOL, NULL, NULL);
 		v -> left -> value.string_value = "vec";
 		/* v -> right = newnode(NODE_LIST, NULL, NULL); */
-		v -> right = newnode(NODE_LIST, quasiquote(vec2list(newnode(NODE_VEC,tree,NULL)),in_a_list,1), NULL);
+		v -> right = 
+		  newnode(NODE_LIST, 
+				  quasiquote(
+					vec2list(newnode(NODE_VEC,tree,NULL)),in_a_list,1),
+				  NULL);
 		return v;
 	}
 
@@ -90,7 +94,8 @@ node *quasiquote(node *tree, int in_a_list, int from_vector)
 		 - only counts if at the first of a list,
 		 - but recursing along a list ruins that! */
 
-	if(ast && ast -> type == NODE_LIST && ast -> left && ast -> left -> type == NODE_UQUOTE && !in_a_list && !from_vector)
+	if(ast && ast -> type == NODE_LIST && ast -> left && 
+	   ast -> left -> type == NODE_UQUOTE && !in_a_list && !from_vector)
 		return ast -> right -> left;
 	
 	/* Recurse */
@@ -99,11 +104,15 @@ node *quasiquote(node *tree, int in_a_list, int from_vector)
 		if(ast -> left == NULL)
 			return ast;
 		elt = ast -> left;
-		if(elt && elt -> type == NODE_LIST && elt -> left && elt -> left -> type == NODE_SUQUOTE) {
+		if(elt && elt -> type == NODE_LIST && elt -> left && 
+		   elt -> left -> type == NODE_SUQUOTE) {
 			node *res = newnode(NODE_LIST, NULL, NULL);
 			res -> left = newnode(NODE_SYMBOL, NULL, NULL);
 			res -> left -> value.string_value = "concat";
-			res -> right = newnode(NODE_LIST, elt -> right -> left, newnode(NODE_LIST, quasiquote(ast -> right,1,0), NULL));
+			res -> right = 
+			    newnode(NODE_LIST, elt -> right -> left, 
+				        newnode(NODE_LIST, 
+						        quasiquote(ast -> right,1,0), NULL));
 			return res;
 		}
 		else {
@@ -111,7 +120,8 @@ node *quasiquote(node *tree, int in_a_list, int from_vector)
 			res -> left = newnode(NODE_SYMBOL, NULL, NULL);
 			res -> left -> value.string_value = "cons";
 			res -> right = newnode(NODE_LIST, quasiquote(elt,0,0), NULL);
-			res -> right -> right = newnode(NODE_LIST,quasiquote(ast -> right,1,0), NULL);
+			res -> right -> right = 
+			    newnode(NODE_LIST,quasiquote(ast -> right,1,0), NULL);
 			return res;
 		}
 	}
@@ -131,7 +141,6 @@ node *macroexpand(node *tree, Env *env)
 	while(is_macro_call(tree, env)) {
 		node *sym = tree -> left;
 		node *fn = env_get(env, sym);
-		/* printf("in macroexpand applying %s to %s\n", pr_str(fn, 1), pr_str(tree -> right, 1)); */
 		tree = EVAL(newnode(NODE_LIST,fn,tree -> right), env);
 	}
 	return tree;
@@ -150,7 +159,8 @@ node *EVAL(node *t, Env *env)
 		return eval_tree(t, env);
 	
 	/* If it is the empty list or vector */
-	if((t -> type == NODE_LIST || t -> type == NODE_VEC) && t -> left == NULL)
+	if((t -> type == NODE_LIST || t -> type == NODE_VEC) && 
+	    t -> left == NULL)
 		return t;
 
 	/* Perform macro expansion */
@@ -159,7 +169,8 @@ node *EVAL(node *t, Env *env)
 		return eval_tree(t, env);
 
 	/* Check for special forms */
-	if(t -> type == NODE_LIST && t ->left && t -> left -> type >= NODE_SPECIAL_START) {
+	if(t -> type == NODE_LIST && t ->left && 
+	   t -> left -> type >= NODE_SPECIAL_START) {
 		switch(t -> left -> type) {
 			case NODE_QUOTE:
 				return t -> right -> left;
@@ -171,17 +182,19 @@ node *EVAL(node *t, Env *env)
 				return quasiquote(t -> right -> left,0,0);
 				break;
 			case NODE_DEFBANG:
-				if(t -> right && t -> right -> left && t -> right -> right && t -> right -> right -> left) {
+				if(t -> right && t -> right -> left && 
+				   t -> right -> right && t -> right -> right -> left) {
 					a = EVAL(t -> right -> right -> left, env);
 					env_set(env, t -> right -> left, a);
 				}
 				return a;
 			case NODE_DEFMACRO:
-				if(t -> right && t -> right -> left && t -> right -> right && t -> right -> right -> left) {
+				if(t -> right && t -> right -> left && 
+				   t -> right -> right && 
+				   t -> right -> right -> left) {
 					a = EVAL(t -> right -> right -> left, env);
 					if(a && a -> type == NODE_LAMBDA)
 						a -> type = NODE_MACRO;
-					/* printf("defining macro %s as %s\n", t -> right -> left -> value.string_value, pr_str(a, 1)); */
 					env_set(env, t -> right -> left, a);
 				}
 				return a;
@@ -214,13 +227,14 @@ node *EVAL(node *t, Env *env)
 					while(a && a -> right)
 						a = a -> right;
 
-					return a -> left;
+					return a? a -> left: NULL;
 				}
 				break;
 			case NODE_IF:
 				{
 					node *cond = EVAL(t -> right -> left, env);
-					if(!cond || cond -> type == NODE_NIL || cond -> type == NODE_FALSE) {
+					if(!cond || cond -> type == NODE_NIL || 
+					            cond -> type == NODE_FALSE) {
 						if(!t -> right -> right -> right)
 							return newnode(NODE_NIL,NULL,NULL);
 						t = t -> right -> right -> right -> left; /* TCO */
@@ -235,7 +249,7 @@ node *EVAL(node *t, Env *env)
 					/* Return a function closure */	
 					node *c = newnode(NODE_LAMBDA, NULL, NULL);
 					c -> left = t -> right -> left; /* parameter list */
-					c -> right = t -> right -> right -> left; /* function body */
+					c -> right = t -> right -> right -> left; /* body */
 					c -> value.node_env = env; /* environment */
 					return c;
 				}
@@ -263,7 +277,9 @@ node *EVAL(node *t, Env *env)
 						try
 							r = EVAL(clause, env);
 						catch(err)
-							e = newenv(env, newnode(NODE_LIST, sym, NULL), newnode(NODE_LIST, err.value, NULL));
+							e = newenv(env, 
+								       newnode(NODE_LIST, sym, NULL), 
+									   newnode(NODE_LIST, err.value, NULL));
 							r = EVAL(except,e);
 						end_try_catch
 						return r;
@@ -278,7 +294,7 @@ node *EVAL(node *t, Env *env)
 		}
 	}
 	/* Now it is a list so apply first element to the rest of the list */
-	if(t -> left -> type != NODE_MACRO) {
+	if(t && t -> left && t -> left -> type != NODE_MACRO) {
 		e = eval_tree(t, env);
 		f = e -> left;
 	}
@@ -329,8 +345,15 @@ void initialise(Env *env)
 {
 	rep("(def! not (fn* (a) (if a false true)))", env);
 	rep("(def! fact (fn* (n) (if (< n 1) 1 (* n (fact (- n 1))))))", env);
-	rep("(def! load-file (fn* (f) (eval (read-string (str \"(do \" (slurp f) \"\nnil)\")))))", env);
-	rep("(defmacro! cond (fn* (& xs) (if (> (count xs) 0) (list 'if (first xs) (if (> (count xs) 1) (nth xs 1) (throw \"odd number of forms to cond\")) (cons 'cond (rest (rest xs)))))))", env);
+	rep("(def! load-file \
+	     (fn* (f) \
+		 (eval (read-string (str \"(do \" (slurp f) \"\nnil)\")))))", env);
+	rep("(defmacro! cond \
+	     (fn* (& xs) (if (> (count xs) 0) \
+		             (list 'if (first xs) \
+					        (if (> (count xs) 1) (nth xs 1) \
+							(throw \"odd number of forms to cond\")) \
+					 (cons 'cond (rest (rest xs)))))))", env);
 }
 
 node *make_argv(int argc, char *argv[])
@@ -376,7 +399,8 @@ int main(int argc, char *argv[])
 				result = rep(line_read, env);
 				printf("%s\n",result);
 			catch(err)
-				printf("Exception %d: %s %s\n", err.code, err.msg, pr_str(err.value, 1));
+				printf("Exception %d: %s %s\n", err.code, err.msg, 
+					                            pr_str(err.value, 1));
 			end_try_catch
 		}	
 		else {
@@ -387,4 +411,3 @@ int main(int argc, char *argv[])
 	exception_end();
 	return 0;
 }
-

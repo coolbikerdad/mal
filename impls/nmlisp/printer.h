@@ -14,4 +14,3 @@ typedef struct Writer {
     int position;
     int capacity;
 } Writer;
-

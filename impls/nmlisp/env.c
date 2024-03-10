@@ -9,7 +9,8 @@
 /* Global repl_env needed for eval */
 Env *repl_environment = NULL;
 
-/* An environment is a hashmap (herein a list of pairs) of NODE_SYMBOLs with nodes following as values */
+/* An environment is a hashmap (herein a list of pairs) 
+   of NODE_SYMBOLs with nodes following as values */
 
 Env *newenv(Env* outer, node *binds, node *exprs)
 {
@@ -22,7 +23,6 @@ Env *newenv(Env* outer, node *binds, node *exprs)
             binds = binds -> right;
             if(!exprs) exprs = newnode(NODE_LIST,NULL,NULL);
             env_set(e, binds -> left, exprs);
-            /* printf("tail binding %s\n",binds -> left -> value.string_value); */
             (void) prn(exprs);
             return e;
         }
@@ -70,7 +70,8 @@ node *env_get(Env *env, node *sym)
 
     while(e) {
         node *n = e -> left;
-        if(n -> type == NODE_SYMBOL && strcmp(n -> value.string_value, s) == 0) {
+        if(n -> type == NODE_SYMBOL && 
+           strcmp(n -> value.string_value, s) == 0) {
             return e -> right -> left;
         }       
         e = e -> right;
@@ -92,7 +93,8 @@ node *env_get(Env *env, node *sym)
 
 int is_macro_call(node *tree, Env *env)
 {
-    if(tree && tree -> type == NODE_LIST && tree -> left && tree -> left ->type == NODE_SYMBOL) {
+    if(tree && tree -> type == NODE_LIST && tree -> left && 
+       tree -> left ->type == NODE_SYMBOL) {
         node *sym = tree -> left;
         node *v = env_get(env, sym);
         if(v && v -> type == NODE_MACRO)

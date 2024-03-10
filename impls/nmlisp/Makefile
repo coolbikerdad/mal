@@ -67,6 +67,3 @@ $(S8): $(S8_SRC) $(S8_HEADERS)
 
 $(S9): $(S9_SRC) $(S8_HEADERS)
 	$(CC) $(CFLAGS) $(S9_SRC) $(LIBS) -o $(S9)
-
-
-

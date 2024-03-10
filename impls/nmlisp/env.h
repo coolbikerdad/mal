@@ -1,4 +1,5 @@
-/* An environment is a hashmap (herein a list of pairs) of NODE_SYMBOLs with nodes following as values */
+/* An environment is a hashmap (herein a list of pairs) 
+   of NODE_SYMBOLs with nodes following as values */
 #include "types.h"
 
 #ifndef __ENV_H__

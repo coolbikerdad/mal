@@ -12,7 +12,8 @@ typedef struct trycatch_exception {
 void exception_init();
 jmp_buf *exception_newbuf();
 void exception_endbuf();
-void throw_exception(const char *msg, node *value, int code);
+void throw_exception(const char *msg, node *value, int code)
+	__attribute__((noreturn));
 const exception_t exception_get_last();
 void exception_end();
 

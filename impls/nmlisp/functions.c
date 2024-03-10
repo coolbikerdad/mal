@@ -7,10 +7,6 @@
 #include "reader.h"
 #include "exceptions.h"
 
-/*
-Functions
-*/
-
 /* a NODE_FUNC has a value that is a pointer to a function to call */
 
 node *newfunc(node *(*func)(node *)) 
@@ -21,7 +17,8 @@ node *newfunc(node *(*func)(node *))
     return n1;
 }
 
-/* An environment is a hashmap (herein a list of pairs) of NODE_SYMBOLs with nodes following as values */
+/* An environment is a hashmap (herein a list of pairs) 
+   of NODE_SYMBOLs with nodes following as values */
 
 /* For adding values to an environment */
 node *add_env(node *env, node *sym, node *val)
@@ -35,7 +32,8 @@ node *add_env(node *env, node *sym, node *val)
 node *env_lookup(char *name, node *env) {
     node *e = env, *s = NULL;
     while(e) {
-        if(e -> type != NODE_LIST || !(s = e -> left) || s -> type != NODE_SYMBOL || !e -> right) {
+        if(e -> type != NODE_LIST || !(s = e -> left) || 
+           s -> type != NODE_SYMBOL || !e -> right) {
             printf("corrupt environment");
             return NULL;
         }
@@ -125,9 +123,10 @@ node *integer_div(node *list)
     /* In this case divide first two numbers in the list */
     /* Add error conditions later */
 
-    int a = 0, b = 0;
+    int a = 0, b = 1;
     node *l = list;
     node *answer = newnode(NODE_INT,NULL,NULL);
+    answer -> value.int_value = 0;
 
     if(l && l -> type == NODE_LIST) {
         node *n = l -> left;
@@ -144,7 +143,8 @@ node *integer_div(node *list)
     }
     if(b == 0) 
         throw_exception("divide by zero", list, 1);
-    answer -> value.int_value = a / b;
+    else
+        answer -> value.int_value = a / b;
     return answer;
 }
 
@@ -231,7 +231,8 @@ node *empty_query(node *t)
 {
     node *l;
 
-    if(t && t -> left && (t -> left -> type == NODE_LIST || t -> left -> type == NODE_VEC)) {
+    if(t && t -> left && (t -> left -> type == NODE_LIST || 
+                          t -> left -> type == NODE_VEC)) {
         l = t -> left;
         /* First parameter is a list. Is it empty? */
         if(l -> left == NULL && l -> right == NULL)
@@ -246,7 +247,8 @@ node *count_list(node *t)
     node *a = newnode(NODE_INT, NULL, NULL);
     a -> value.int_value = 0;
 
-    while(l && (l -> type == NODE_LIST || l -> type == NODE_VEC) && l -> left) {
+    while(l && (l -> type == NODE_LIST || l -> type == NODE_VEC) && 
+          l -> left) {
         a -> value.int_value++;
         l = l -> right;
     }
@@ -291,7 +293,8 @@ int nodes_equal(node *x, node *y)
     if(!x || !y || xtype != ytype)
         return a;
 
-    if(x -> type == NODE_NIL || x -> type == NODE_TRUE || x -> type == NODE_FALSE)
+    if(x -> type == NODE_NIL || x -> type == NODE_TRUE || 
+                                x -> type == NODE_FALSE)
         return NODE_TRUE;
 
     if(x -> type == NODE_INT) {
@@ -300,7 +303,8 @@ int nodes_equal(node *x, node *y)
         return a;
     }
 
-    if(x -> type == NODE_STRING || x -> type == NODE_KEY || x -> type == NODE_SYMBOL) {
+    if(x -> type == NODE_STRING || x -> type == NODE_KEY || 
+                                   x -> type == NODE_SYMBOL) {
         if(strcmp(x -> value.string_value, y -> value.string_value) == 0)
             a = NODE_TRUE;
         return a;
@@ -355,14 +359,16 @@ node *atom(node *t)
 
 node *atom_query(node *t)
 {
-    if(!t || t -> type != NODE_LIST || t -> left == NULL || t -> left -> type != NODE_ATOM)
+    if(!t || t -> type != NODE_LIST || t -> left == NULL || 
+        t -> left -> type != NODE_ATOM)
         return newnode(NODE_FALSE, NULL, NULL);
     return newnode(NODE_TRUE, NULL, NULL);
 }
 
 node *deref_atom(node *t)
 {
-    if(!t || t -> type != NODE_LIST || t -> left == NULL || t -> left -> type != NODE_ATOM)
+    if(!t || t -> type != NODE_LIST || t -> left == NULL || 
+        t -> left -> type != NODE_ATOM)
         return NULL;
     return t -> left -> left;
 }
@@ -370,7 +376,8 @@ node *deref_atom(node *t)
 node *reset_bang(node *t)
 {
     node *a, *v;
-    if(!t || t -> type != NODE_LIST || t -> left == NULL || t -> right == NULL || t -> left -> type != NODE_ATOM)
+    if(!t || t -> type != NODE_LIST || t -> left == NULL || 
+        t -> right == NULL || t -> left -> type != NODE_ATOM)
         return NULL;
 
     a = t -> left;
@@ -528,37 +535,51 @@ node *throw(node *t)
 
 node *nil_query(node *t)
 {
-    return newnode(t && t -> left && t -> left -> type == NODE_NIL? NODE_TRUE: NODE_FALSE, NULL, NULL);
+    return newnode(t && t -> left && 
+                   t -> left -> type == NODE_NIL? 
+                   NODE_TRUE: NODE_FALSE, NULL, NULL);
 }
 
 node *true_query(node *t)
 {
-    return newnode(t && t -> left && t -> left -> type == NODE_TRUE? NODE_TRUE: NODE_FALSE, NULL, NULL);
+    return newnode(t && t -> left && 
+                   t -> left -> type == NODE_TRUE? 
+                   NODE_TRUE: NODE_FALSE, NULL, NULL);
 }
 
 node *false_query(node *t)
 {
-    return newnode(t && t -> left && t -> left -> type == NODE_FALSE? NODE_TRUE: NODE_FALSE, NULL, NULL);
+    return newnode(t && t -> left && 
+                   t -> left -> type == NODE_FALSE? 
+                   NODE_TRUE: NODE_FALSE, NULL, NULL);
 }
 
 node *symbol_query(node *t)
 {
-    return newnode(t && t -> left && t -> left -> type == NODE_SYMBOL? NODE_TRUE: NODE_FALSE, NULL, NULL);
+    return newnode(t && t -> left && 
+                   t -> left -> type == NODE_SYMBOL? 
+                   NODE_TRUE: NODE_FALSE, NULL, NULL);
 }
 
 node *keyword_query(node *t)
 {
-    return newnode(t && t -> left && t -> left -> type == NODE_KEY? NODE_TRUE: NODE_FALSE, NULL, NULL);
+    return newnode(t && t -> left && 
+                   t -> left -> type == NODE_KEY? 
+                   NODE_TRUE: NODE_FALSE, NULL, NULL);
 }
 
 node *vector_query(node *t)
 {
-    return newnode(t && t -> left && t -> left -> type == NODE_VEC? NODE_TRUE: NODE_FALSE, NULL, NULL);
+    return newnode(t && t -> left && 
+                   t -> left -> type == NODE_VEC? 
+                   NODE_TRUE: NODE_FALSE, NULL, NULL);
 }
 
 node *map_query(node *t)
 {
-    return newnode(t && t -> left && t -> left -> type == NODE_HASH? NODE_TRUE: NODE_FALSE, NULL, NULL);
+    return newnode(t && t -> left && 
+                   t -> left -> type == NODE_HASH? 
+                   NODE_TRUE: NODE_FALSE, NULL, NULL);
 }
 
 node *apply(node *t)
@@ -572,7 +593,8 @@ node *apply(node *t)
     node *a = NULL;
     int last_arg = 0;
 
-    if(!t || !t -> left || !(t -> left -> type == NODE_FUNC || t -> left -> type == NODE_LAMBDA))
+    if(!t || !t -> left || !(t -> left -> type == NODE_FUNC || 
+                             t -> left -> type == NODE_LAMBDA))
         throw_exception("applying a non-function", t, 1);
     
     /* Run through the given argument list building the function arguments */
@@ -582,7 +604,8 @@ node *apply(node *t)
     while(args) {
         if(!last_arg && !args -> right) {
             /* last argument, go into it */
-            if(args -> left == NULL || (args -> left -> type != NODE_LIST && args -> left -> type != NODE_VEC))
+            if(args -> left == NULL || (args -> left -> type != NODE_LIST && 
+                                        args -> left -> type != NODE_VEC))
                 throw_exception("apply last arg not a list", t, 1);
             args = args -> left;
             last_arg = 1;
@@ -600,7 +623,6 @@ node *apply(node *t)
     if(fargs -> left -> type == NODE_LAMBDA) {
         Env *e = NULL;
         node *f = fargs -> left;
-        /* printf("in apply, binding %s to %s\n", pr_str(f -> left, 1), pr_str(fargs -> right, 1)); */
 		e = newenv(f -> value.node_env, f -> left, fargs -> right);
         return EVAL(f -> right,e);
 	}
@@ -615,10 +637,13 @@ node *map(node *t)
     node *result;
     node *fn;
 
-    if(!t || !t -> left || !(t -> left -> type == NODE_FUNC || t -> left -> type == NODE_LAMBDA))
+    if(!t || !t -> left || !(t -> left -> type == NODE_FUNC || 
+                             t -> left -> type == NODE_LAMBDA))
         throw_exception("mapping a non-function", t, 1);
 
-    if(!t -> right || !t -> right -> left || !(t -> right -> left -> type == NODE_LIST || t -> right -> left -> type == NODE_VEC))
+    if(!t -> right || !t -> right -> left || 
+       !(t -> right -> left -> type == NODE_LIST || 
+         t -> right -> left -> type == NODE_VEC))
         throw_exception("mapping onto a non-list", t, 1);
 
     fn = t -> left;
@@ -635,7 +660,6 @@ node *map(node *t)
 	    }
         if(fn -> type == NODE_LAMBDA) {
             Env *e = NULL;
-            printf("in map, binding %s to %s\n", pr_str(fn -> left, 1), pr_str(fargs, 1));
 		    e = newenv(fn -> value.node_env, fn -> left, fargs);
             r = EVAL(fn -> right,e);
         }
@@ -664,7 +688,8 @@ node* keyword(node *t)
 {
     node *result;
 
-    if(!t || !t -> left || (t -> left -> type != NODE_STRING && t -> left -> type != NODE_KEY)) {
+    if(!t || !t -> left || (t -> left -> type != NODE_STRING && 
+                            t -> left -> type != NODE_KEY)) {
         throw_exception("cannot make symbol from non-string", t, 1);
     }
 
@@ -677,7 +702,8 @@ node *sequential_query(node *t)
 {
     return newnode(t && 
                    t -> left && 
-                   (t -> left -> type == NODE_LIST || t -> left -> type == NODE_VEC)? 
+                   (t -> left -> type == NODE_LIST || 
+                    t -> left -> type == NODE_VEC)? 
                    NODE_TRUE: NODE_FALSE, NULL, NULL);    
 }
 
@@ -710,7 +736,7 @@ node *hash_get(node *t)
 
     hm = t -> left;
     key = t -> right -> left;
-    /* printf("in hashmap get, looking for %s in %s\n", pr_str(key, 1), pr_str(hm, 1)); */
+
     while(hm && hm -> right) {
         if(nodes_equal(key, hm -> left) == NODE_TRUE)
             return hm -> right -> left;
@@ -729,7 +755,7 @@ node *hash_contains(node *t)
 
     hm = t -> left;
     key = t -> right -> left;
-    /* printf("in hashmap contains, looking for %s in %s\n", pr_str(key, 1), pr_str(hm, 1)); */
+
     while(hm && hm -> right) {
         if(nodes_equal(key, hm -> left) == NODE_TRUE)
             return newnode(NODE_TRUE, NULL, NULL);
@@ -806,10 +832,18 @@ int hash_equals(node *x, node *y)
 
     /* Loop through x keys and check present and equal in y */
     while(xkeys && xkeys -> left) {
-        if(hash_contains(newnode(NODE_LIST,y,newnode(NODE_LIST,xkeys -> left, NULL))) -> type == NODE_FALSE
+        if(hash_contains(
+            newnode(NODE_LIST, y,
+                    newnode(NODE_LIST,xkeys -> left, NULL))) -> type 
+            == NODE_FALSE
             /* key is not present */
-            || nodes_equal(hash_get(newnode(NODE_LIST,x,newnode(NODE_LIST,xkeys -> left, NULL))),
-                           hash_get(newnode(NODE_LIST,y,newnode(NODE_LIST,xkeys -> left, NULL)))) == NODE_FALSE
+            || 
+            nodes_equal(
+                hash_get(newnode(NODE_LIST,x,
+                                 newnode(NODE_LIST,xkeys -> left, NULL))),
+                hash_get(newnode(NODE_LIST,y,
+                                 newnode(NODE_LIST,xkeys -> left, NULL)))) 
+                == NODE_FALSE
             /* values do not match*/
         )
             return NODE_FALSE;
@@ -834,7 +868,10 @@ node *hash_assoc(node *t)
     /* Now add existing hashmap enties if not already present */
     while(hm && hm -> right) 
     {
-        if(hash_contains(newnode(NODE_LIST,new,newnode(NODE_LIST,hm -> left,NULL))) -> type == NODE_FALSE) {
+        if(hash_contains(
+            newnode(NODE_LIST,new,
+                    newnode(NODE_LIST,hm -> left,NULL))) -> type 
+            == NODE_FALSE) {
             new = newnode(NODE_HASH,hm -> right -> left,new);
             new = newnode(NODE_HASH,hm -> left, new);
         }
@@ -853,11 +890,13 @@ node *hash_dissoc(node *t)
     if(hm -> type != NODE_HASH)
         throw_exception("dissoc with non-hashmap", hm, 1);
 
-    printf("in dissoc removing %s from %s\n", pr_str(bindings,1), pr_str(hm,1));
     /* Now copy existing hashmap enties if not in the dissoc map */
     while(hm && hm -> right) 
     {
-        if(list_contains(newnode(NODE_LIST,bindings,newnode(NODE_LIST,hm -> left,NULL))) -> type == NODE_FALSE) {
+        if(list_contains(
+                newnode(NODE_LIST,bindings,
+                        newnode(NODE_LIST,hm -> left,NULL))) -> type
+            == NODE_FALSE) {
             new = newnode(NODE_HASH,hm -> right -> left,new);
             new = newnode(NODE_HASH,hm -> left, new);
         }

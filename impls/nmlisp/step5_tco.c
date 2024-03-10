@@ -84,7 +84,8 @@ node *EVAL(node *t, Env *env)
 				return t -> right -> left;
 				break;
 			case NODE_DEFBANG:
-				if(t -> right && t -> right -> left && t -> right -> right && t -> right -> right -> left) {
+				if(t -> right && t -> right -> left && 
+				   t -> right -> right && t -> right -> right -> left) {
 					a = EVAL(t -> right -> right -> left, env);
 					env_set(env, t -> right -> left, a);
 				}
@@ -114,13 +115,14 @@ node *EVAL(node *t, Env *env)
 					while(a && a -> right)
 						a = a -> right;
 
-					return a -> left;
+					return a? a -> left: NULL;
 				}
 				break;
 			case NODE_IF:
 				{
 					node *cond = EVAL(t -> right -> left, env);
-					if(!cond || cond -> type == NODE_NIL || cond -> type == NODE_FALSE) {
+					if(!cond || cond -> type == NODE_NIL || 
+							    cond -> type == NODE_FALSE) {
 						if(!t -> right -> right -> right)
 							return newnode(NODE_NIL,NULL,NULL);
 						t = t -> right -> right -> right -> left; /* TCO */
@@ -228,4 +230,3 @@ int main()
 	exception_end();
 	return 0;
 }
-

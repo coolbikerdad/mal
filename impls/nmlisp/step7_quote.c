@@ -82,7 +82,9 @@ node *quasiquote(node *tree, int in_a_list, int from_vector)
 		v -> left = newnode(NODE_SYMBOL, NULL, NULL);
 		v -> left -> value.string_value = "vec";
 		/* v -> right = newnode(NODE_LIST, NULL, NULL); */
-		v -> right = newnode(NODE_LIST, quasiquote(vec2list(newnode(NODE_VEC,tree,NULL)),in_a_list,1), NULL);
+		v -> right = newnode(NODE_LIST, 
+							 quasiquote(vec2list(newnode(NODE_VEC,tree,NULL)),
+							 							 in_a_list,1), NULL);
 		return v;
 	}
 
@@ -90,7 +92,8 @@ node *quasiquote(node *tree, int in_a_list, int from_vector)
 		 - only counts if at the first of a list,
 		 - but recursing along a list ruins that! */
 
-	if(ast && ast -> type == NODE_LIST && ast -> left && ast -> left -> type == NODE_UQUOTE && !in_a_list && !from_vector)
+	if(ast && ast -> type == NODE_LIST && ast -> left && 
+	   ast -> left -> type == NODE_UQUOTE && !in_a_list && !from_vector)
 		return ast -> right -> left;
 	
 	/* Recurse */
@@ -99,11 +102,15 @@ node *quasiquote(node *tree, int in_a_list, int from_vector)
 		if(ast -> left == NULL)
 			return ast;
 		elt = ast -> left;
-		if(elt && elt -> type == NODE_LIST && elt -> left && elt -> left -> type == NODE_SUQUOTE) {
+		if(elt && elt -> type == NODE_LIST && elt -> left && 
+		   elt -> left -> type == NODE_SUQUOTE) {
 			node *res = newnode(NODE_LIST, NULL, NULL);
 			res -> left = newnode(NODE_SYMBOL, NULL, NULL);
 			res -> left -> value.string_value = "concat";
-			res -> right = newnode(NODE_LIST, elt -> right -> left, newnode(NODE_LIST, quasiquote(ast -> right,1,0), NULL));
+			res -> right = newnode(NODE_LIST, elt -> right -> left, 
+						           newnode(NODE_LIST, 
+								   	       quasiquote(ast -> right,1,0), 
+										   NULL));
 			return res;
 		}
 		else {
@@ -111,7 +118,9 @@ node *quasiquote(node *tree, int in_a_list, int from_vector)
 			res -> left = newnode(NODE_SYMBOL, NULL, NULL);
 			res -> left -> value.string_value = "cons";
 			res -> right = newnode(NODE_LIST, quasiquote(elt,0,0), NULL);
-			res -> right -> right = newnode(NODE_LIST,quasiquote(ast -> right,1,0), NULL);
+			res -> right -> right = newnode(NODE_LIST,
+											quasiquote(ast -> right,1,0), 
+											NULL);
 			return res;
 		}
 	}
@@ -154,7 +163,8 @@ node *EVAL(node *t, Env *env)
 				return quasiquote(t -> right -> left,0,0);
 				break;
 			case NODE_DEFBANG:
-				if(t -> right && t -> right -> left && t -> right -> right && t -> right -> right -> left) {
+				if(t -> right && t -> right -> left && t -> right -> right && 
+				   t -> right -> right -> left) {
 					a = EVAL(t -> right -> right -> left, env);
 					env_set(env, t -> right -> left, a);
 				}
@@ -184,13 +194,14 @@ node *EVAL(node *t, Env *env)
 					while(a && a -> right)
 						a = a -> right;
 
-					return a -> left;
+					return a? a -> left: NULL;
 				}
 				break;
 			case NODE_IF:
 				{
 					node *cond = EVAL(t -> right -> left, env);
-					if(!cond || cond -> type == NODE_NIL || cond -> type == NODE_FALSE) {
+					if(!cond || cond -> type == NODE_NIL || 
+								cond -> type == NODE_FALSE) {
 						if(!t -> right -> right -> right)
 							return newnode(NODE_NIL,NULL,NULL);
 						t = t -> right -> right -> right -> left; /* TCO */
@@ -259,7 +270,8 @@ void initialise(Env *env)
 {
 	rep("(def! not (fn* (a) (if a false true)))", env);
 	rep("(def! fact (fn* (n) (if (< n 1) 1 (* n (fact (- n 1))))))", env);
-	rep("(def! load-file (fn* (f) (eval (read-string (str \"(do \" (slurp f) \"\nnil)\")))))", env);
+	rep("(def! load-file \
+	     (fn* (f) (eval (read-string (str \"(do \" (slurp f) \"\nnil)\")))))", env);
 }
 
 node *make_argv(int argc, char *argv[])
@@ -316,4 +328,3 @@ int main(int argc, char *argv[])
 	exception_end();
 	return 0;
 }
-

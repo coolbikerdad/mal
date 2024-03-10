@@ -18,26 +18,29 @@ void exception_init() {
 
 jmp_buf *exception_newbuf() {
 	__buf_count++;
-	__bufs = (jmp_buf*) GC_realloc((void*) __bufs, sizeof(jmp_buf) * __buf_count);
+	__bufs = (jmp_buf*) 
+		     GC_realloc((void*) __bufs, sizeof(jmp_buf) * __buf_count);
 	return &__bufs[__buf_count-1];
 }
 
 void exception_endbuf() {
 	__buf_count--;
-	__bufs = (jmp_buf*) GC_realloc((void*) __bufs, sizeof(jmp_buf) * __buf_count);
+	__bufs = (jmp_buf*) 
+		     GC_realloc((void*) __bufs, sizeof(jmp_buf) * __buf_count);
 }
 
 void throw_exception(const char *msg, node *value, int code) {
 	__last_exception.code = code;
 	if (!__buf_count) {
-		fprintf(stderr, "Uncaught exception of code %d and message: %s\n", code, msg);
+		fprintf(stderr, "Uncaught exception code %d, message: %s\n", 
+				code, msg);
 		exception_end();
 		raise(SIGSEGV);
 		/* NOTREACHED */
-		return;
 	}
 	GC_free((void*) __last_exception.msg);
-	__last_exception.msg = (char*) GC_malloc( sizeof(char)*(strlen(msg)+1) );
+	__last_exception.msg = (char*) 
+						   GC_malloc( sizeof(char)*(strlen(msg)+1) );
 	strcpy(__last_exception.msg, msg);
 	__last_exception.value = value;
 	longjmp(__bufs[__buf_count-1], code);

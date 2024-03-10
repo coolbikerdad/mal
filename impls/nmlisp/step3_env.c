@@ -84,7 +84,8 @@ node *EVAL(node *t, Env *env)
 				return t -> right -> left;
 				break;
 			case NODE_DEFBANG:
-				if(t -> right && t -> right -> left && t -> right -> right && t -> right -> right -> left) {
+				if(t -> right && t -> right -> left && 
+				   t -> right -> right && t -> right -> right -> left) {
 					a = EVAL(t -> right -> right -> left, env);
 					env_set(env, t -> right -> left, a);
 				}
@@ -179,4 +180,3 @@ int main()
 	exception_end();
 	return 0;
 }
-
